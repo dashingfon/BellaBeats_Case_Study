@@ -1,0 +1,691 @@
+---
+title: "Google Data Analysis Capstone Project - Bellabeat Case Study"
+author: "Mfon Stephen Nwa"
+date: "9/10/2021"
+output:
+  prettydoc::html_pretty:
+    theme: cayman
+    highlight: github
+---
+## Case Study 2: How can a wellness technology company play it smart?
+
+![](images/bellabeats_logo.jpg)
+
+
+> ## INTRODUCTION
+
+This is the Bellabeat case study, a capstone project for the Google Data Analysis Certificate. In this Case Study I will analyse smart devices data for Bellabeat(a manufacturer of health focused products for women)in order to gain insights into how customers are using their smart devices and unlock new growth potential for the company.
+
+
+### Deliverables
+
+* A clear summary of the business task
+* A description of all data sources used
+* Documentation of any cleaning or manipulation of data
+* A summary of the analysis
+* Supporting visualizations and key ﬁndings
+* Recommendations based on the analysis
+
+
+
+### Business Task
+
+
+Analyze FitBit fitness tracker data to gain insights into how consumers are using the FitBit app and discover trends for Bellabeat marketing strategy.
+
+For this Analysis I shall be using the six step data analysis process:
+
+* Ask
+* Prepare
+* Process
+* Analyse
+* Share
+* Act
+
+> ## ASK
+
+In this step I shall identify questions we hope to solve with this analysis
+
+I shall try to identify:
+
+* Daily trends in user activity
+* Hourly trends in user activity
+* Relationships between variables
+
+
+> ## PREPARE
+
+In the prepare stage, I shall identify the data being used, its nature and format, examine its credibility, and its limitations.
+
+### Data Source Description
+
+I shall be using public dataset from [FitBit](https://www.kaggle.com/arashnic/fitbit) stored on Kaggle.
+This Kaggle data set is made up of 18 csv files that contains personal ﬁtness tracker from thirty ﬁtbit users. 
+
+Thirty eligible Fitbit users consented to the submission of personal tracker data, including minute-level output for physical activity, heart rate, and sleep monitoring. It includes information about daily activity, steps, and heart rate that can be used to explore users' habits.
+
+To examine the data's credibility I shall be using the acronym ROCCC
+
+* R - Reliable: The dataset is not Reliable as it contains data from only 30 people
+* O - Original: The dataset is not original as it is third party data(via Amazon Mechanical Turk)
+* C - Comprehensive: The dataset is comprehensive as most of the parameters match those of Bellabeats
+* C - Current: The dataset is not current as it was gathered 5 years ago(2016)
+* C - Cited: The dataset is well cited, it is cited as; Furberg, R. Brinton, J. Keating, M. & Ortiz, A. (2016). Crowd-sourced Fitbit datasets 03.12.2016-05.12.2016 [Data set]. Zenodo. https://doi.org/10.5281/zenodo.53894. Although it is third party it clearly states the source of the data.
+
+The Dataset credibility is not sufficient enough to provide reliable insight for Bellabeats, Therefore insights generated will have to be verified with further analysis of a more reliable data set 
+
+> ## PROCESS
+
+Here, I shall explore, clean and process the data for the analysis stage. I shall be using R for the data cleaning, transformation, analysis, and visualization.
+
+I am going to be using the following packages for this project:
+
+* tidyverse
+* skimr
+* chron
+
+```{r include=FALSE} 
+# To install the required packages
+# options(repos = list(CRAN="http://cran.rstudio.com/"))
+options(repos = list(CRAN="http://cran.rstudio.com/"))
+install.packages("skimr")
+install.packages("tidyverse")
+install.packages("chron")
+
+```
+
+
+
+```{r include=FALSE}
+# To load the required packages
+
+library("skimr")
+library("tidyverse")
+library("chron")
+
+```
+
+
+
+
+Then to load the data
+
+```{r} 
+
+daily_activity_full <- read.csv("bellabeat data/dailyActivity_merged.csv")
+
+daily_calories <- read.csv("bellabeat data/dailyCalories_merged.csv")
+
+daily_steps <- read.csv("bellabeat data/dailySteps_merged.csv")
+
+daily_intensity <- read.csv("bellabeat data/dailyIntensities_merged.csv")
+
+sleep_minutes <- read.csv("bellabeat data/minuteSleep_merged.csv")
+
+sleep_days <- read.csv("bellabeat data/sleepDay_merged.csv")
+
+weight_log <- read.csv("bellabeat data/weightLogInfo_merged.csv")
+
+hourly_steps <- read.csv("bellabeat data/hourlySteps_merged.csv")
+
+hourly_intensity <- read.csv("bellabeat data/hourlyIntensities_merged.csv")
+
+hourly_calories <- read.csv("bellabeat data/hourlyCalories_merged.csv")
+
+```
+
+
+
+
+To explore the data frames I will preview the first 10 rows of the data with the 'head()' function 
+
+```{r}
+
+head(daily_activity_full)
+head(daily_calories)
+head(daily_steps)
+head(daily_intensity)
+
+head(sleep_minutes)
+head(sleep_days)
+head(weight_log)
+
+head(hourly_steps)
+head(hourly_intensity)
+head(hourly_calories)
+
+```
+ 
+
+
+
+From viewing the data I can notice that there are some data that are similar
+
+The data is divided into the following categories:
+
+* Weight
+* Intensity
+  + hourly
+  + daily
+* Calories
+  + hourly
+  + daily
+* Steps
+  + hourly
+  + daily
+* Sleep
+  + minutes
+  + daily
+
+
+The daily_calories, daily_intensity and daily_steps data frames all have the same number of rows as the daily_activity_full data frame. To confirm that they all contain the same information, I will extract the common columns and check if they are identical  
+
+```{r}
+
+all(select(daily_activity_full,Id,ActivityDate,Calories) == daily_calories)
+
+```
+
+
+
+It shows that exactly the same information is in both data frames
+
+Checking with the 'daily_intensity' data frame
+
+```{r}
+
+all(select(daily_activity_full,Id,ActivityDate,SedentaryMinutes,LightlyActiveMinutes,FairlyActiveMinutes,VeryActiveMinutes,SedentaryActiveDistance,LightActiveDistance,ModeratelyActiveDistance,VeryActiveDistance) == daily_intensity)
+```
+
+
+The 'daily_intensity' data is contained in the 'daily_activity_full' data.
+
+Finally to confirm that the 'daily_steps' data frame is also contained in the 'daily_activity_full' data frame
+
+```{r}
+
+
+all(select(daily_activity_full,Id,ActivityDate,TotalSteps) == daily_steps)
+```
+
+
+
+The 'daily_steps' data frame is contained in the 'daily_activity_full' data frame.
+
+Since these 3 data frames are all present in the 'daily_activity_full' data frame I can safely remove these data frames from the analysis for simplicity.
+
+The 'hourly_calories', 'hourly_intensity', and 'hourly_steps' all have the same number of rows so I will verify if they contain the same data
+
+```{r}
+all(
+  select(hourly_steps,Id,ActivityHour) == select(hourly_intensity,Id,ActivityHour)
+)
+all(
+  select(hourly_steps,Id,ActivityHour) == select(hourly_calories,Id,ActivityHour)
+)
+```
+
+
+So I can safely join the data frames
+
+```{r}
+hourly_activity <- hourly_calories %>% 
+  inner_join(hourly_intensity) %>% 
+  inner_join(hourly_steps)
+```
+
+
+The 'sleep_days' contains the sleep data frame on a day-to-day basis while the 'sleep_minutes' data frame contains the same data just on a minute-to-minute basis
+To confirm if they contain the same participants
+
+```{r}
+all(distinct(sleep_days,Id) == distinct(sleep_minutes,Id))
+```
+
+
+I shall be using the 'sleep_day' data frame for this analysis
+So I am left with the following Four Data Frames:
+
+* daily_activity_full
+* hourly_activity
+* sleep_day
+* weight_log
+
+### Data Cleaning and Manipulation
+
+```{r}
+# To check for missing values
+
+sum(is.na(daily_activity_full))
+sum(is.na(hourly_activity))
+sum(is.na(sleep_days))
+sum(is.na(weight_log))
+```
+
+
+
+There are no null or missing values except in the "weight_log" data frame.To better understand the missing data
+
+```{r}
+is.na(weight_log)
+
+```
+
+
+
+From the table I can see that the data has a lot of missing values, Majority of which are in the "Fat" column. So for futher analysis I will remove the "Fat" column as it isn't usefull and may contain errors
+
+```{r}
+weight_log <- weight_log %>% select(-Fat)
+```
+
+
+
+To check for mis-matched data types
+
+```{r}
+glimpse(daily_activity_full)
+
+glimpse(hourly_activity)
+
+glimpse(sleep_days)
+
+glimpse(weight_log)
+
+```
+
+
+
+The Date and time are in the character format instead of the date or date-time format
+So to change that
+
+```{r}
+# To change the ActivityDate column in activity_date_full to date format
+
+daily_activity_full$ActivityDate <-     as.Date(daily_activity_full$ActivityDate,format = "%m/%d/%Y")
+
+
+# To change the ActivityHour column in hourly_activity to date-time format
+# First i will separate the ActivityHour into date,time and period_of_day
+
+hourly_activity <- hourly_activity %>% separate(ActivityHour,c("Date","Time","Period_of_day"),sep = " ")
+
+
+# To convert the date and time to DateTime format
+
+hourly_activity <- hourly_activity %>% mutate(Date_Time = (chron(dates = Date,times = Time,format = c('m/d/Y','h:m:s'))))
+
+# To place the newly created DateTime beside the period of the day
+
+hourly_activity <- hourly_activity[,c(1:3,9,4:8)]
+
+# Now repeating the same for the remaining 2 data frames
+# For the sleep_days data
+
+sleep_days <- sleep_days %>% separate(SleepDay,c("Date","Time","Period_of_day"),sep = " ")
+
+sleep_days$Date = as.Date(sleep_days$Date,format = "%m/%d/%Y")
+
+
+# For the weight_log data
+
+weight_log <- weight_log %>% separate(Date, c("Date","Time","Period_of_day"),sep = " ")
+
+weight_log <- weight_log %>% mutate(Date_Time = (chron(dates = Date,times = Time,format = c('m/d/y','h:m:s'))))
+
+weight_log <- weight_log[,c(1:3,10,4:9)]
+
+```
+ 
+
+
+To check for duplicates in the data
+
+```{r}
+sum(duplicated(daily_activity_full) == TRUE)
+sum(duplicated(hourly_activity) == TRUE)
+sum(duplicated(sleep_days) == TRUE)
+sum(duplicated(weight_log) == TRUE)
+
+```
+
+
+To remove duplicate data in "sleep_days"  
+
+```{r}
+sleep_days <- sleep_days %>% distinct()
+
+```
+
+
+
+The misspelled or mistyped values(if any) are much more difficult to identify as the majority of the data is numerical. So for this dataframe I will assume there is no misspelled or mistyped values 
+
+To check for errors and confirm the business logic of the data, First i will check for the duration of entries in the dataframes
+
+```{r}
+range(daily_activity_full$ActivityDate)
+range(hourly_activity$Date_Time)
+range(weight_log$Date_Time)
+range(sleep_days$Date)
+```
+
+
+
+All the data sets have the same range of a month with is the same as in the description
+
+Then I will check for the number of different participants in each of the data sets
+
+```{r}
+n_distinct(daily_activity_full$Id)
+n_distinct(hourly_activity$Id)
+n_distinct(sleep_days$Id)
+n_distinct(weight_log$Id)
+
+```
+
+
+
+The weight_log data both has too small a number of participants to generate reliable and valuable insights.
+Also the number of participants is not exactly 30, This might be an error in the data collection process or the data is incomplete. 
+
+### Data Cleaning and Manipulation Documentation
+
+
+Data Cleaning
+
+* Checked for missing and null values
+* Checked for mismatched data types
+* Checked for duplicates
+* Checked for misspelled and mistyped values
+* Checked for errors in the data
+
+
+Data Manipulation 
+
+* Removed duplicates
+* Converted dates to the appropriate data type
+
+
+> ## ANALYSE 
+
+In the analyse stage I will examine and organize the data to try and discover insights and relationships.
+
+To get the mean hourly steps and calories for each hour of the day
+
+```{r}
+Hourly_Steps <- hourly_activity %>% group_by(Hour = hours(Date_Time),Period_of_day) %>% summarise(Mean_Steps = mean(StepTotal)) %>%  arrange(Period_of_day)
+
+Hourly_Steps <- Hourly_Steps[c(1:11,24,13:23,12),]
+
+Hourly_Steps <- Hourly_Steps %>%  unite("Time_Of_Day",Hour,Period_of_day,sep = " ")
+
+Hourly_Steps %>% arrange(desc(Mean_Steps))
+```
+
+
+
+The table shows the times of the day and the corresponding steps taken from the most to the least
+it shows that 6pm is the hour the participants generally take the most steps and 3am is the hour with the least steps taken
+
+```{r}
+Hourly_Calories <- hourly_activity %>% group_by(Hour = hours(Date_Time),Period_of_day) %>% summarise(Mean_Calories = mean(Calories)) %>%  arrange(Period_of_day)
+
+Hourly_Calories <- Hourly_Calories[c(1:11,24,13:23,12),]
+
+Hourly_Calories <- Hourly_Calories %>%  unite("Time_Of_Day",Hour,Period_of_day,sep = " ")
+
+Hourly_Calories %>% arrange(desc(Mean_Calories))
+
+```
+
+
+
+The table show the times and the corresponding mean calories burnt by the participants.
+
+It show also that 6pm is the time that the participants generally burn the most calories and also that 3am is the time with the least calories burnt
+
+Both tables appear to be quite similar which indicates that there is a correlation between steps taken and calories burnt
+
+For the analysis of the "daily_activity_full" dataframe
+To get the mean steps, calories, active distances and total distances for each hour of the day
+
+```{r}
+Day_Step_Distance <- daily_activity_full %>% group_by(Days = weekdays(ActivityDate)) %>% summarise(Mean_Steps = mean(TotalSteps),MeanDistance_km = mean(TotalDistance))
+
+Day_Step_Distance <- Day_Step_Distance[c(2,6,7,5,1,3,4),]
+
+Day_Step_Distance %>% arrange(desc(Mean_Steps))
+```
+
+
+
+The table shows that Saturday on average is the day with the most steps taken and total distance covered while Sunday is the day with the least steps taken and distance covered. there is a strong correlation between the steps taken and the total distance covered.
+
+According to an article from the Center for Disease and prevention(CDC) published on [MedicalNewsToday](https://www.medicalnewstoday.com/articles/how-many-steps-should-you-take-a-day) by Jennifer Huizen on 26 February 2021, which states that most adults should aim for around 10,000 steps daily(about 8 kilometers,or 5 miles) as walking has several health benefits and can even prevent certain health conditions.
+
+However, from the above table none of the participants reached the recommended daily steps. 
+
+
+```{r}
+Day_Calories <- daily_activity_full %>% group_by(Day = weekdays(ActivityDate)) %>% summarise(Mean_calories = mean(Calories)) 
+
+Day_Calories <- Day_Calories[c(2,6,7,5,1,3,4),]
+
+Day_Calories %>% arrange(desc(Mean_calories))
+```
+
+
+
+The table shows the mean calories burnt each day
+It shows that Tuesday is the day with the most calories burnt and Thursday with the least calories.
+
+There is a slight correlation with the daily calories burnt and daily steps.However the correlation isn't as strong a the correlation with the hourly steps taken and hourly calories burnt, also the difference in calories across the days is relatively insignificant( >150 Calories) therefore the average calories burnt is fairly stable
+
+```{r}
+Daily_Active_Distances <- daily_activity_full %>% group_by(Day = weekdays(ActivityDate)) %>% summarise(MeanActiceDistance_km = mean(VeryActiveDistance))
+
+Daily_Active_Distances <- Daily_Active_Distances[c(2,6,7,5,1,3,4),]
+  
+Daily_Active_Distances %>% arrange(desc(MeanActiceDistance_km))
+```
+
+
+The table shows the mean active distance covered each day
+It shows that on average Wednesday is the day the participants covered the most active distances and Friday the day with the least mean active distances
+
+
+```{r}
+daily_activity_full %>% select(Id,VeryActiveMinutes,FairlyActiveMinutes,LightlyActiveMinutes,SedentaryMinutes) %>% summary()
+```
+
+
+From the summary it shows that daily on average people spent 21.6 minutes very active, 13.56 minutes fairly active, 192.8 lightly active, and majority of the time(991.2 minutes) Sedentary(inactive) 
+
+For the analysis of the sleep data frame
+To get the mean time in bed for each day of the week
+
+```{r}
+sleep_days %>% select(TotalMinutesAsleep,TotalTimeInBed) %>% summary()
+```
+
+
+The summary shows that the users spend on average 458.6 minutes(7.6 hours) in bed and 419.5 minutes(6.99 hours) asleep
+
+```{r}
+
+Daily_Sleep_Data <- sleep_days %>% group_by(Day = weekdays(Date)) %>% summarise(Mean_Time_in_bed = mean(TotalTimeInBed),Mean_Time_Asleep = mean(TotalMinutesAsleep))
+
+Daily_Sleep_Data <- Daily_Sleep_Data[c(2,6,7,5,1,3,4),]
+
+Daily_Sleep_Data %>% arrange(desc(Mean_Time_in_bed)) 
+
+```
+
+
+The data table shows the mean total time in bed for each day
+it shows that Sunday is the day the participants generally spend the most times in bed and Thursday is the day that the participants spend the least time in bed
+
+To explore the relationships between time in bed and sedentary minutes
+
+```{r}
+sleep_days <- sleep_days %>% rename(ActivityDate = Date)
+
+Daily_Sleep_and_Activity_merged <- merge(sleep_days,daily_activity_full,by = c("Id","ActivityDate")) %>% mutate(TotalTimeInBed_HRS = TotalTimeInBed/60,TotalHoursAsleep = TotalMinutesAsleep/60)
+
+
+```
+
+
+
+
+Making a few exploratory plots to explore relationships between variables
+
+```{r}
+# To explore the relationship between total time in bed, sedentary minutes and total steps
+
+Daily_Sleep_and_Activity_merged %>% ggplot()+geom_point(aes(x=TotalTimeInBed_HRS,y=SedentaryMinutes,color =TotalSteps))+geom_smooth(aes(x=TotalTimeInBed_HRS,y=SedentaryMinutes),color="red") + labs(title = "Sedentary minutes vs Total Hours in Bed")
+
+```
+
+
+From the plot, the less the users spend in bed the more hours they spend being sedentary and also the less steps they take.
+
+```{r}
+# To explore the relationship between total time in bed, total steps and very active minutes.
+
+Daily_Sleep_and_Activity_merged %>% ggplot()+geom_point(aes(x=TotalTimeInBed_HRS,y=TotalSteps,color =VeryActiveMinutes))+geom_smooth(aes(x=TotalTimeInBed_HRS,y=TotalSteps),color = "red") +labs(title = "Total Steps vs Total Hours in Bed")
+
+```
+
+
+The plot trend is similar to a bell curve, Majority of the users that took 10,000 steps or more spent between 6 - 10 hours in bed and they were active for more minutes.  
+
+```{r}
+# To explore the relationship between total steps in bed, very actice distances and calories
+
+Daily_Sleep_and_Activity_merged %>% ggplot()+geom_point(aes(x=TotalSteps,y=VeryActiveDistance,color =Calories))+geom_smooth(aes(x=TotalSteps,y=VeryActiveDistance),color="red") + labs(title = "Very Active Distance vs Total Steps")
+
+```
+
+
+As expected the plot shows a positive correlation with very active distances and Total steps.
+
+```{r}
+# To explore the relationship between total distance and calories
+
+Daily_Sleep_and_Activity_merged %>% ggplot()+geom_point(aes(x=TotalDistance,y=Calories,color =VeryActiveDistance))+geom_smooth(aes(x=TotalDistance,y=Calories),color="red") + labs(title = "Calories Vs TotalDistance")
+
+```
+
+
+The plot shows a positive correlation with calories, total distance and very active distances.
+
+
+For the analysis of the weight data frame
+To get the frequency of the entry modes of the reports
+
+```{r}
+table1 = as.table(table(weight_log$IsManualReport))
+prop.table(table1)
+```
+
+
+It show that 61% of the values was entered manually and 38.8% of the data values was generated automatically
+
+```{r}
+weight_log %>% group_by(Id) %>% summarise(Average_BMI = mean(BMI))
+
+
+```
+
+
+The table shows the mean BMI(Body Mass Index) for each of the participants.
+
+According to an article published on the [Center for Disease Control and Prevention Website](https://www.cdc.gov/obesity/adult/defining.html)(CDC) BMI below 18.5 falls under the underweight category,BMI between 18.5 and 25 falls under the healthy weight category, BMI between 25 and 30 falls within the overweight category, and BMI above 30 falls within the obesity category
+
+It shows that no participant is underweight and 3 are healthy, 4 are overweight, and 1 is obese. However since the number of participants in the weight log data is so small, reliable conclusions cannot be drawn from the data.
+
+### Summary of Analysis 
+
+* 6pm and 3am are the hours with the most and least steps taken respectively
+* 6pm and 3am are the hours with the most and least calories burnt respectively
+* There is strong correlation between the hourly steps taken and the hourly calories burnt
+* Saturdays are the days with the most steps and distance covered while Sundays are the days with the least steps and distance covered
+* There is a strong correlation between the daily steps taken and the total distance covered
+* Tuesdays are the days with the most calories burnt while Thursdays are the days with the least calories burnt. However the difference isn't very significant as the range is less than 150 calories
+* Wednesdays are the days where people are most active and Fridays are the days where people are least active
+* The participants spent more time in bed on Sundays and least time in beds on Thursdays
+* The users spend most of the day being sedentary
+* Majority of the time(61%) values were entered manually
+* Majority of users spend around 6 to 10 hours in bed daily and 7.6 hours on average
+* The less hours users sleep the more sedentary they are during the day
+* Users who spent between 6 - 10 hours in bed were more likely to take the recommended 10,000 daily steps 
+
+>## SHARE
+
+In the Share stage I will be creating visualizations that communicate the findings made in the analysis.
+
+### VISUALIZATIONS AND KEY FINDINGS
+
+```{r}
+ggplot(data = Hourly_Steps) + geom_col(mapping = aes(x = fct_inorder(Time_Of_Day),y = Mean_Steps,fill = Time_Of_Day)) + theme(axis.text.x=element_text(angle=90,margin = margin(1, unit = "cm"),vjust =1)) + labs(title="Hourly Mean Steps",x="Hour of the Day")
+```
+
+```{r}
+ggplot(data = Hourly_Calories) + geom_col(mapping=aes(x=fct_inorder(Time_Of_Day),y=Mean_Calories,fill = Time_Of_Day)) + theme(axis.text.x=element_text(angle=90,margin = margin(1, unit = "cm"),vjust =1)) + labs(title="Hourly Calories",x="Hour of the Day")
+```
+
+
+Users are most active 6pm and most inactive 3am
+
+```{r}
+ggplot(data = Day_Calories)+ geom_col(aes( x= fct_inorder(Day),y = Mean_calories,fill = Day)) + theme(axis.text.x=element_text(angle=90,margin = margin(1, unit = "cm"),vjust =1)) + labs(title="Daily Calories",x="Day of the Week")
+```
+
+
+There isn't a significant difference in the daily calories burnt
+
+```{r}
+ggplot(data = Daily_Active_Distances) + geom_col(aes(x=fct_inorder(Day),y=MeanActiceDistance_km,fill=Day)) + theme(axis.text.x=element_text(angle=90,margin = margin(1, unit = "cm"),vjust =1)) +labs(title="Daily Active Distances",x="Day of the Week")
+```
+
+
+On average users active for the longest distances during wednesdays.
+
+```{r}
+ggplot(sleep_days %>% group_by(Day = weekdays(ActivityDate)))+geom_boxplot(aes(x=fct_inorder(Day),y=TotalMinutesAsleep,fill=Day,group = Day)) + labs(title = "Boxplot of the average daily duration \n users spend in bed",x="Day of the Week") + theme(axis.text.x=element_text(angle=90,margin = margin(1, unit = "cm"),vjust =1))
+
+```
+
+
+From the plot, the users time in bed varies most on saturdays and sundays(Probably because its the weekend) and they generally spend the most time in bed on sundays.
+
+```{r}
+ggplot(daily_activity_full)+geom_point(aes(x=TotalSteps,y=Calories,color=VeryActiveMinutes))+geom_smooth((aes(x=TotalSteps,y=Calories,color=VeryActiveMinutes)),color="red") + labs(title = "Calories vs Total Steps")
+```
+
+
+As expected the calories burnt increases as the daily total steps increases.
+
+```{r}
+Daily_Sleep_and_Activity_merged %>% ggplot()+geom_point(aes(x=TotalTimeInBed_HRS,y=SedentaryMinutes,color =TotalSteps))+geom_smooth(aes(x=TotalTimeInBed_HRS,y=SedentaryMinutes),color="red") + labs(title = "Sedentary minutes vs Total Hours in Bed")
+```
+
+
+```{r}
+Daily_Sleep_and_Activity_merged %>% ggplot()+geom_point(aes(x=TotalTimeInBed_HRS,y=TotalSteps,color =VeryActiveMinutes))+geom_smooth(aes(x=TotalTimeInBed_HRS,y=TotalSteps),color = "red") +labs(title = "Total Steps vs Total Hours in Bed")
+```
+
+> ## ACT
+
+In the final step, I will be delivering my insights and providing recommendations based on my analysis.
+I shall be focusing on providing recommendations for the Bellabeats app
+
+### RECOMMENDATIONS BASED ON ANALYSIS
+
+* Enable notification to alert users when they have spent 10 hrs or more in bed
+* Enable congratulation message to encourage users when they have reached the recommended 10,000 daily step
+* Partner with health and fitness companies and offer discounts for users that spend most of the days being sedentary
+* Enable notifications to alert users when they have spent a long stretch of time being sedentary
+* Offer the option to synchronize the app with the users alarm and/or calender to prompt a message to go to bed in time to get the recommended 7 hours of sleep
